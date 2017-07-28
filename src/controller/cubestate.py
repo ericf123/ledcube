@@ -6,7 +6,7 @@ class CubeState:
     def __init__(self, ext_time):
         """standard initializer
            ext_time is the time (in seconds) and LED should stay on after being turned on"""
-        self.current = np.uint64(0) #current map of leds that are on - initialize to none on (treated as 64bit in)
+        self.current = 0 #current map of leds that are on - initialize to none on (treated as 64bit in)
         self.ext_queue = eq() 
         self.ext_time = ext_time
         self.last_sent = -1 #used to check if we should send data
@@ -58,16 +58,12 @@ class CubeState:
     def send(self):
         """todo - implement this to send packed bitsets to the arduino"""
         if self.last_sent != self.current:#don't want to send any data unless state changes
-            print(bin(self.current))
             self.last_sent = self.current
+            return self.pack_bitset(self.current)
 
 if __name__ == '__main__':
     cs = CubeState(1)
     #print(bin(cs.bitset(pos_list=[(3,3,3),(0,0,0),(1,0,0),(0,1,0),(0,0,0)])))
     cs.update(pos_list=[(3,3,3),(0,0,0),(1,0,0),(0,1,0),(0,0,0)])
-    while True:
-        cs.update(x=-1,y=-1,z=-1, pos_list=None)
-        cs.send()
-        if cs.current == 0:
-            break
+    print(cs.send())
 
