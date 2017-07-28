@@ -1,15 +1,27 @@
 import numpy as np
 from expirationqueue import ExpirationQueue as eq
 from time import time
+import serial
+from sys import exit
 
 class CubeState:
-    def __init__(self, ext_time):
+    def __init__(self, ext_time, serial_port, serial_baud=115200):
         """standard initializer
            ext_time is the time (in seconds) and LED should stay on after being turned on"""
         self.current = 0 #current map of leds that are on - initialize to none on (treated as 64bit in)
         self.ext_queue = eq() 
         self.ext_time = ext_time
+        self.serial_port = serial_port #port to use to communicate with arduino
+        self.serial_baud = serial_baud
         self.last_sent = -1 #used to check if we should send data
+
+        #TODO - improve error handling
+        #open serial connection
+        try:
+            self.serial = serial.Serial(port=self.serial_port, baudrate=self.serial_baud)
+        except Exception:
+            print("Error opening serial port. Bye.")
+            exit(1) #sys.exit 
         
     def bitset(self, x=None, y=None, z=None, pos_list=None):
         """x,y,z: integer in [0,3] (cube coordinate)
@@ -56,14 +68,19 @@ class CubeState:
         self.current &= self.ext_queue.pop()#turn off the expired LEDs
 
     def send(self):
-        """todo - implement this to send packed bitsets to the arduino"""
+        """Packs self.current into an array of 8 bytes and writes it to self.serial.
+           Before sending, it checks to see if self.current has changed from the last time it 
+           sent data to avoid flooding the Arduino with unneeded data.
+           Returns byte array that was sent if it sends something, -1 if it sends nothing."""
         if self.last_sent != self.current:#don't want to send any data unless state changes
             self.last_sent = self.current
-            return self.pack_bitset(self.current)
+            to_send = self.pack_bitset(self.current)
+            self.serial.write(to_send)
+            return to_send
+        return -1
 
 if __name__ == '__main__':
-    cs = CubeState(1)
-    #print(bin(cs.bitset(pos_list=[(3,3,3),(0,0,0),(1,0,0),(0,1,0),(0,0,0)])))
+    cs = CubeState(1, '/dev/ttyUSB0')
     cs.update(pos_list=[(3,3,3),(0,0,0),(1,0,0),(0,1,0),(0,0,0)])
     print(cs.send())
 
