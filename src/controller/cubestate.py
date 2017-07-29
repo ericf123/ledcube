@@ -37,11 +37,11 @@ class CubeState:
                 y = pos[1]
                 z = pos[2]
                 if not (x == -1 or y == -1 or z == -1):
-                    bset |= (1 << (16*x + 4*y + z))
+                    bset |= (1 << (16*x + 4*z + y))
             return bset
         else:
             #1 << index
-            return 1 << 16*x + 4*y + z #just bask in the elegance
+            return 1 << 16*x + 4*z + y #just bask in the elegance
 
     def pack_bitset(self, bits):
         """Packs bits into a padded array of 8 bytes for sending to Arduino over serial.
@@ -74,7 +74,7 @@ class CubeState:
            Returns byte array that was sent if it sends something, -1 if it sends nothing."""
         if self.last_sent != self.current:#don't want to send any data unless state changes
             self.last_sent = self.current
-            to_send = self.pack_bitset(self.current)
+            to_send = np.flipud(self.pack_bitset(self.current))#we flip the array because numpy loads it into buffer in reverse order
             self.serial.write(to_send)
             return to_send
         return -1
