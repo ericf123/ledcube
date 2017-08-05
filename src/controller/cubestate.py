@@ -22,6 +22,14 @@ class CubeState:
         except Exception:
             print("Error opening serial port. Bye.")
             exit(1) #sys.exit 
+    def z_helper(self, z):
+        """hacky way of making the thing work. I'm really sorry about this."""
+        if z == 2:
+            z = 3
+        elif z == 3:
+            z = 2
+        return z
+
         
     def bitset(self, x=None, y=None, z=None, pos_list=None):
         """x,y,z: integer in [0,3] (cube coordinate)
@@ -36,12 +44,14 @@ class CubeState:
                 x = pos[0]
                 y = pos[1]
                 z = pos[2]
+                z = self.z_helper(z)
                 if not (x == -1 or y == -1 or z == -1):
                     bset |= (1 << (16*x + 4*z + y))
             return bset
         else:
             #1 << index
-            return 1 << 16*x + 4*z + y #just bask in the elegance
+            z = self.z_helper(z)
+            return 1 << 16*x + 4*z + y
 
     def pack_bitset(self, bits):
         """Packs bits into a padded array of 8 bytes for sending to Arduino over serial.
@@ -80,7 +90,7 @@ class CubeState:
         return -1
 
 if __name__ == '__main__':
-    cs = CubeState(1, '/dev/ttyUSB0')
-    cs.update(pos_list=[(3,3,3),(0,0,0),(1,0,0),(0,1,0),(0,0,0)])
+    cs = CubeState(1, '/dev/ttyUSB1')
+    cs.update(pos_list=[(0,0,0),(1, 0, 0),(2,0,0),(3,0,0)])
     print(cs.send())
 

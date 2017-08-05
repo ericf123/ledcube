@@ -11,20 +11,21 @@
  */
 
 
-byte state[8];//store the state of all the LEDs, state[7] bit 7 is (4,4,4)
+byte state[8] = {0, 0, 0, 0, 0, 0, 0, 0};//store the state of all the LEDs, state[7] bit 7 is (4,4,4)
 void display();
 
 void setup() {
     //initialize pins 2-18 to outputs
     for (int i = 2; i < 18; i++){
         pinMode(i, OUTPUT);
+        digitalWrite(i, HIGH);
     }
     Serial.begin(115200); //set the baudrate and open port
 }
 
 void loop(){
     //the CV controller won't send data if there is no change
-    if (Serial.available() > 0){//read new data if it's available
+   if (Serial.available() > 0){//read new data if it's available
         Serial.readBytes(state, 8);
     }
     display();//run one TDM cycle
@@ -32,12 +33,20 @@ void loop(){
 
 void display(){
     for (int i = 2; i < 10; i++){//loop through anodes
-        digitalWrite(i, LOW);//driver is a PMOS, so we need to write LOW to turn it on
         for (int j = 10; j < 18; j++){//loop through cathodes
-            byte cathodeState = state[i-2] & (1 << (j - 10))//use and to figure out if cathod j should be on
+            byte cathodeState = state[i-2] & (1 << (j-10));//use and to figure out if cathod j should be on
             //0 evaultes to false (LOW), so !0 will be true (HIGH)
             digitalWrite(j, !cathodeState);//writing low turns LED on
+            if (cathodeState){
+                Serial.print("a: ");
+                Serial.print(i);
+                Serial.print(", c: ");
+                Serial.print(j);
+            }
         }
+        digitalWrite(i, LOW);//driver is a PMOS, so we need to write LOW to turn it on
+        delayMicroseconds(100);
         digitalWrite(i, HIGH);//"turn off" anode
+        Serial.println();
     } 
 }
