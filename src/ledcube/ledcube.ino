@@ -27,11 +27,7 @@ void setup()
 */
 inline byte getLEDState(byte pattern[4][4][4], byte aNum, byte cNum)
 {
-  //TODO - figure out a better formula
-  byte z = (aNum / 4) + (cNum / 4);
-  if (aNum >= 4 && cNum < 4) {
-    z = 3;
-  }
+  byte z = abs(2 * (aNum/4) + (aNum/4 - cNum/4));
   return pattern[aNum % 4][cNum % 4][z];
 }
 
