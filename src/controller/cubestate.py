@@ -18,7 +18,7 @@ class CubeState:
         #TODO - improve error handling
         #open serial connection
         try:
-            self.serial = serial.Serial(port=self.serial_port, baudrate=self.serial_baud)
+            self.serial = serial.Serial(port=self.serial_port, baudrate=self.serial_baud, timeout=1)
         except Exception:
             print("Error opening serial port. Bye.")
             exit(1) #sys.exit 
@@ -44,13 +44,13 @@ class CubeState:
                 x = pos[0]
                 y = pos[1]
                 z = pos[2]
-                z = self.z_helper(z)
+                #z = self.z_helper(z)
                 if not (x == -1 or y == -1 or z == -1):
                     bset |= (1 << (16*x + 4*z + y))
             return bset
         else:
             #1 << index
-            z = self.z_helper(z)
+            #z = self.z_helper(z)
             return 1 << 16*x + 4*z + y
 
     def pack_bitset(self, bits):
@@ -69,7 +69,7 @@ class CubeState:
            Does error checking and expiration handling around bitset()"""
         if pos_list is not None:
             new_state = self.bitset(pos_list=pos_list)
-            self.current |= new_state
+            self.current = new_state
             self.ext_queue.push(~new_state, time() + self.ext_time)
         elif -1 not in [x,y,z]:#use -1 to set everything off
            new_state = self.bitset(x,y,z)
@@ -82,12 +82,12 @@ class CubeState:
            Before sending, it checks to see if self.current has changed from the last time it 
            sent data to avoid flooding the Arduino with unneeded data.
            Returns byte array that was sent if it sends something, -1 if it sends nothing."""
-        if self.last_sent != self.current:#don't want to send any data unless state changes
-            self.last_sent = self.current
-            to_send = np.flipud(self.pack_bitset(self.current))#we flip the array because numpy loads it into buffer in reverse order
-            self.serial.write(to_send)
-            return to_send
-        return -1
+        #if self.last_sent != self.current:#don't want to send any data unless state changes
+            #self.last_sent = self.current
+        to_send = np.flipud(self.pack_bitset(self.current)).tobytes()#we flip the array because numpy loads it into buffer in reverse order
+        self.serial.write(to_send)
+        return to_send
+    #return -1
 
 if __name__ == '__main__':
     cs = CubeState(1, '/dev/ttyUSB1')
