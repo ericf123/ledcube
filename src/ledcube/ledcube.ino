@@ -21,9 +21,6 @@ void setup()
    Returns the state of the LED in a 4x4x4 pattern array, each dimension
    representing an axis of the LED cube, that corresponds to the given anode (+)
    wire and cathode (-) wire number.
-
-   This function is called by display(), in order to find whether an LED for a
-   particular anode (+) wire and cathode (-) wire should be switched on.
 */
 inline byte getLEDState(byte pattern[4][4][4], byte aNum, byte cNum)
 {

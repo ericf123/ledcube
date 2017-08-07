@@ -1,16 +1,18 @@
 import numpy as np
 from expirationqueue import ExpirationQueue as eq
 from time import time
+from time import sleep
 import serial
 from sys import exit
+import symbol
 
 class CubeState:
-    def __init__(self, ext_time, serial_port, serial_baud=115200):
+    def __init__(self,  serial_port, serial_baud=115200, exp_time=-1):
         """standard initializer
-           ext_time is the time (in seconds) and LED should stay on after being turned on"""
+           exp_time is the time (in seconds) and LED should stay on after being turned on"""
         self.current = 0 #current map of leds that are on - initialize to none on (treated as 64bit in)
-        self.ext_queue = eq() 
-        self.ext_time = ext_time
+        self.exp_queue = eq() 
+        self.exp_time = exp_time
         self.serial_port = serial_port #port to use to communicate with arduino
         self.serial_baud = serial_baud
         self.last_sent = -1 #used to check if we should send data
@@ -22,35 +24,25 @@ class CubeState:
         except Exception:
             print("Error opening serial port. Bye.")
             exit(1) #sys.exit 
-    def z_helper(self, z):
-        """hacky way of making the thing work. I'm really sorry about this."""
-        if z == 2:
-            z = 3
-        elif z == 3:
-            z = 2
-        return z
-
-        
-    def bitset(self, x=None, y=None, z=None, pos_list=None):
+       
+    def bitset(self, x=None, y=None, z=None, coords=None):
         """x,y,z: integer in [0,3] (cube coordinate)
-           Alternatively, one can pass a pos_list where each elem is tuple of form (x,y,z). 
+           Alternatively, one can pass a coords where each elem is tuple of form (x,y,z). 
            Returns a 64bit int with the correct index bit set.
            For example, (3, 3, 3) is led 64 (index 63), (3,0,0) is led 49 (index 48).
-           NOTE: This method does no error checking except for -1 in a pos_list. Do error checking somewhere else.
+           NOTE: This method does no error checking except for -1 in a coords. Do error checking somewhere else.
            """
-        if pos_list is not None:
+        if coords is not None:
             bset = 0
-            for pos in pos_list:
+            for pos in coords:
                 x = pos[0]
                 y = pos[1]
                 z = pos[2]
-                #z = self.z_helper(z)
                 if not (x == -1 or y == -1 or z == -1):
                     bset |= (1 << (16*x + 4*z + y))
             return bset
         else:
             #1 << index
-            #z = self.z_helper(z)
             return 1 << 16*x + 4*z + y
 
     def pack_bitset(self, bits):
@@ -64,18 +56,26 @@ class CubeState:
             packed.itemset(i, current_byte)
         return packed
 
-    def update(self, x=None, y=None, z=None, pos_list=None):
+    def update(self, x=None, y=None, z=None, coords=None):
         """Sets the current state to a bitset derived from x,y,z as cube coords.
            Does error checking and expiration handling around bitset()"""
-        if pos_list is not None:
-            new_state = self.bitset(pos_list=pos_list)
+        if self.exp_time >= 0:#negative expiration time means don't do automatic expiration
+            if coords is not None:
+                new_state = self.bitset(coords=coords)
+            elif -1 not in [x,y,z]:#use -1 to set everything off
+               new_state = self.bitset(x,y,z)
+
+            self.current |= new_state
+            self.exp_queue.push(~new_state, time() + self.exp_time)
+            self.current &= self.exp_queue.pop()#turn off the expired LEDs
+        else:
+            if coords is not None:
+                new_state = self.bitset(coords=coords)
+            elif -1 not in [x,y,z]:#use -1 to set everything off
+                new_state = self.bitset(x,y,z)
+            else: 
+                new_state = 0
             self.current = new_state
-            self.ext_queue.push(~new_state, time() + self.ext_time)
-        elif -1 not in [x,y,z]:#use -1 to set everything off
-           new_state = self.bitset(x,y,z)
-           self.current |= new_state #turn on new LED in addition to ones that are already on
-           self.ext_queue.push(~new_state, time() + self.ext_time)
-        self.current &= self.ext_queue.pop()#turn off the expired LEDs
 
     def send(self):
         """Packs self.current into an array of 8 bytes and writes it to self.serial.
@@ -89,8 +89,18 @@ class CubeState:
         return to_send
     #return -1
 
-if __name__ == '__main__':
-    cs = CubeState(1, '/dev/ttyUSB1')
-    cs.update(pos_list=[(0,0,0),(1, 0, 0),(2,0,0),(3,0,0)])
-    print(cs.send())
+    def printf(self, string, delay, z_planes=[0]):#
+        """convenient helper function to print strings"""
+        for char in string:
+            #flash off for a small amount of time for breaks between letters
+            self.update(-1,-1,-1)
+            self.send()
+            sleep(delay*.5)
 
+            #send new letter and wait a little
+            self.update(coords=symbol.coords(char, z_planes))
+            self.send()
+            sleep(delay)
+        #clear cube after print
+        self.update(-1,-1,-1)
+        self.send()
