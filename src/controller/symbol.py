@@ -21,7 +21,7 @@ K_COORDS = [(3,3), (2,3), (1,3), (0,3), (2,2), (1,2), (3,1), (0,1)]
 L_COORDS = [(3,3), (2,3), (1,3), (0,3), (0,2), (0,1), (0,0)]
 M_COORDS = [(3,3), (2,3), (1,3), (0,3), (2,2), (2,1), (3,0), (2,0), (1,0), (0,0)]
 N_COORDS = [(0,0), (1,0), (2,0), (3,0), (1,1), (2,2), (3,3), (0,3), (1,3), (2,3)]
-O_COORDS = [(3,3), (2,3), (1,3), (0,3), (3,2), (0,2), (3,1), (0,1), (3,0), (2,0), (1,0), (0,0)]
+O_COORDS = [(2,3), (1,3), (3,2), (0,2), (3,1), (0,1), (2,0), (1,0)]
 P_COORDS = [(3,3), (2,3), (1,3), (0,3), (3,2), (1,2), (3,1), (1,1), (3,0), (2,0), (1,0)]
 Q_COORDS = [(3,3), (2,3), (1,3), (3,2), (1,2), (3,1), (2,1), (1,1), (0,0)]
 R_COORDS = [(2,3), (1,3), (0,3), (2,2), (2,1)]
@@ -33,7 +33,7 @@ W_COORDS = [(3,3), (2,3), (1,3), (0,3), (1,2), (1,1), (3,0), (2,0), (1,0), (0,0)
 X_COORDS = [(3,3), (0,3), (2,2), (1,2), (2,1), (1,1,), (3,0), (0,0)]
 Y_COORDS = [(3,3), (2,3), (1,2), (0,2), (1,1), (0,1), (3,0), (2,0)]
 Z_COORDS = [(3,3), (0,3), (3,2), (1,2), (0,2), (3,1), (2,1), (0,1), (3,0), (0,0)]
-ZERO_COORDS = [(3,3), (2,3), (1,3), (0,3), (3,2), (1,2), (0,2), (3,1), (2,1), (0,1), (3,0), (2,0), (1,0), (0,0)]
+ZERO_COORDS = [(3,3), (2,3), (1,3), (0,3), (3,2), (0,2), (3,1), (0,1), (3,0), (2,0), (1,0), (0,0)]
 ONE_COORDS = [(2,3), (0,3), (3,2), (0,2), (3,1), (2,1), (1,1), (0,1), (0,0)]
 TWO_COORDS = [(2,3), (0,3), (3,2), (1,2), (0,2), (3,1), (2,1), (0,1)]
 THREE_COORDS = [(3,3), (2,3), (1,3), (0,3), (3,2), (2,2), (1,2), (0,2), (3,1), (2,1), (1,1), (0,1)]
@@ -43,14 +43,20 @@ SIX_COORDS = [(3,3), (2,3), (1,3), (0,3), (3,2), (1,2), (0,2), (3,1), (1,1), (0,
 SEVEN_COORDS = [(3,3), (0,3), (3,2), (1,2), (3,1), (2,1), (3,0)]
 EIGHT_COORDS = [(3,3), (2,3), (0,3), (3,2), (1,2), (3,1), (2,1), (0,1)]
 NINE_COORDS = [(3,3), (2,3), (3,2), (2,2), (3,1), (2,1), (3,0), (2,0), (1,0), (0,0)]
+EXCLAMATION_COORDS = [(3,2), (2,2), (0,2), (3,1), (2,1), (0,1)]
+COLON_COORDS = [(2,2), (0,2), (2,1), (0,1)]
+OPEN_PAREN_COORDS = [(2,2), (1,2), (3,1), (0,1)]
+CLOSE_PAREN_COORDS = [(3,2), (0,2), (2,1), (1,1)]
+SINGLE_QUOTE_COORDS = [(3,2), (2,2)]
 
-SYMBOLS = "abcdefghijklmnopqrstuvwxyz0123456789" #valid symbols
+SYMBOLS = "abcdefghijklmnopqrstuvwxyz0123456789!:()'" #valid symbols
 #indexes are same as above string, used to look up pattern for symbol
 SYMBOL_COORDS_LIST = [A_COORDS, B_COORDS, C_COORDS, D_COORDS, E_COORDS, F_COORDS, G_COORDS, H_COORDS,
                       I_COORDS, J_COORDS, K_COORDS, L_COORDS, M_COORDS, N_COORDS, O_COORDS, P_COORDS, 
                       Q_COORDS, R_COORDS, S_COORDS, T_COORDS, U_COORDS, V_COORDS, W_COORDS, X_COORDS, 
                       Y_COORDS, Z_COORDS, ZERO_COORDS, ONE_COORDS, TWO_COORDS, THREE_COORDS, FOUR_COORDS,
-                      FIVE_COORDS, SIX_COORDS, SEVEN_COORDS, EIGHT_COORDS, NINE_COORDS]
+                      FIVE_COORDS, SIX_COORDS, SEVEN_COORDS, EIGHT_COORDS, NINE_COORDS, EXCLAMATION_COORDS,
+                      COLON_COORDS, OPEN_PAREN_COORDS, CLOSE_PAREN_COORDS, SINGLE_QUOTE_COORDS] 
 
 def coords(symbol, z_planes=[0]):
     symbol = symbol.lower() #we only have one case
