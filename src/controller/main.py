@@ -1,12 +1,15 @@
 import cubestate
 import raindrop
 import corner
+import vision
 
 PRINTER = 1
-CORNER_PATTERN = 2
-RAINDROP_PATTERN = 3
+VISION = 2
+CORNER_PATTERN = 3
+RAINDROP_PATTERN = 4
+QUIT = 5
 
-cs = cubestate.CubeState('/dev/cu.SLAB_USBtoUART', exp_time=-1)
+cs = cubestate.CubeState('/dev/ttyUSB0', exp_time=-1)
 
 def loop():
     while True:
@@ -18,6 +21,9 @@ def loop():
                     cs.printf(input("enter string (^C to quit): "), .4)
                 except KeyboardInterrupt:
                     break
+        elif choice == VISION:
+            vision.run(cs, .03)
+
         elif choice == CORNER_PATTERN:
             try:
                 corner.run(cs)
@@ -36,21 +42,22 @@ def loop():
 
 def menu():
     user_input = -1
-    while user_input not in [1,2,3,4]:
+    while user_input not in [PRINTER, VISION, CORNER_PATTERN, RAINDROP_PATTERN, QUIT]:
         show_menu_options()
         try:
-            user_input = int(input("Make your selection (1/2/3/4):"))
+            user_input = int(input("Make your selection (1/2/3/4/5):"))
         except:
-            print("Please enter either 1, 2, 3 or 4.")
+            print("Please enter either 1, 2, 3, 4, or 5.")
             user_input = -1
     return user_input
 
 def show_menu_options():
-    print("----Cube Menu-----")
+    print("\n----Cube Menu-----")
     print("1) Message Printer")
-    print("2) Corner Pattern")
-    print("3) Raindrop Pattern")
-    print("4) Quit")
+    print("2) CV Controlled")
+    print("3) Corner Pattern")
+    print("4) Raindrop Pattern")
+    print("5) Quit")
 
 
 

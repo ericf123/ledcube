@@ -1,10 +1,11 @@
 import numpy as np
 import cv2
 from time import sleep
+import cubestate
 
 #create lower and upper thresh for green in image
-lower_green = np.array([60, 100, 100])
-upper_green = np.array([100, 255, 255])
+lower_green = np.array([40, 0, 0])
+upper_green = np.array([120, 255, 255])
 
 lower_red_low = np.array([0, 50, 50])
 upper_red_low = np.array([10, 255, 255])
@@ -61,20 +62,20 @@ def draw_boxes(frame, green_box, red_box):
         cv2.drawContours(frame, [green_box], 0, (0, 0, 255), 1)
 
 
-def get_x():
+def get_z():
     """Calculates cube x-coord based on current pointer angle."""
     angle = smooth_angle(current_pointer_angle)
     if angle >= -20 and angle <= 0:
-        x = 0
+        z = 0
     elif angle >= -40 and angle < -20:
-        x = 1
+        z = 1
     elif angle >= -50 and angle < -40:
-        x = 2
+        z = 2
     elif angle >= -80:
-        x = 3
+        z = 3
     else:
-        x = -1
-    return x
+        z = -1
+    return z
 
 def smooth_angle(angle):
     """Returns the smoothed version of angle by moving average"""
@@ -87,38 +88,46 @@ def smooth_angle(angle):
     pointer_angle_index += 1
 
     return angle
+
+def z(z_coord):
+    """returns the coords for entire z plane specified by z_coord"""
+    coords = []
+    for x in range(0,4):
+        for y in range(0,4):
+            coords.append((x,y,z_coord))
+    return coords
     
-def main():
+def run(cs,delay):
     #get cap obj
     cap = cv2.VideoCapture(0)
-    while(True):
-        ret,frame = cap.read()
-        frame = cv2.flip(frame, 1)#horizontal flip
+    try:
+        while True:
+            ret,frame = cap.read()
+            frame = cv2.flip(frame, 1)#horizontal flip
 
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        #apply threshold
-        green_mask = cv2.inRange(hsv, lower_green, upper_green)
-        red_mask_low = cv2.inRange(hsv, lower_red_low, upper_red_low)
-        red_mask_high = cv2.inRange(hsv, lower_red_high, upper_red_high)
-        red_mask = cv2.bitwise_or(red_mask_low, red_mask_high)
-        
-        red_box = bounding_box_for_largest_cnt(frame, red_mask)
-        green_box = bounding_box_for_largest_cnt(frame, green_mask)
-       
-        if red_box is not False and green_box is not False:
-            cv2.drawContours(frame, [red_box], 0, (0, 255, 0), 1)
-            cv2.drawContours(frame, [green_box], 0, (0, 0, 255), 1)
+            #apply threshold
+            green_mask = cv2.inRange(hsv, lower_green, upper_green)
+            
+            green_box = bounding_box_for_largest_cnt(frame, green_mask, True)
+           
+            if green_box is not False:
+                cv2.drawContours(frame, [green_box], 0, (0, 0, 255), 1)
+                cs.update(coords=z(get_z()))
+                cs.send()
+    
+            #figure out bounding box and draw on frame
+            cv2.imshow('frame', frame)
 
-        #figure out bounding box and draw on frame
-        cv2.imshow('frame', frame)
-        cv2.imshow('red_mask', red_mask)
-        cv2.imshow('green_mask', green_mask)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            sleep(delay)
+    except KeyboardInterrupt:
+        pass
     cap.release()
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main()
+    cs = cubestate.CubeState("/dev/ttyUSB0", exp_time=-1)
+    run(cs, .033)

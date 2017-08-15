@@ -2,7 +2,7 @@ import cubestate
 import serial
 import numpy as np
 from time import sleep
-DELAY = .05
+DELAY = .1
 
 def run(cs):
     direction = 0
