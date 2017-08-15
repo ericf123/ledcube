@@ -2,9 +2,10 @@
 This is a collection of Python scripts and an Arduino sketch to control a 4x4x4 cube of LEDs. I built it for E40M at Stanford.
 ##Project Structure
 In the `src` directory, you will find three subdirectories:
-*controller
-*arduino
-*test
+
+* controller
+* arduino
+* test
 
 ###controller
 This directory holds the Python scripts used to control the LED cube over serial. 
