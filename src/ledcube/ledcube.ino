@@ -1,6 +1,7 @@
 const byte ANODE_PINS[8] = {2, 3, 4, 5, 6, 7, 8, 9};
 const byte CATHODE_PINS[8] = {10, 11, 12, 13, A3, A2, A1, A0};
-
+const byte JUMPER = A5;
+bool cleared;
 void setup()
 {
   // Make all of the anode (+) wire and cathode (-) wire pins outputs
@@ -11,9 +12,11 @@ void setup()
     digitalWrite(ANODE_PINS[i], HIGH);
     digitalWrite(CATHODE_PINS[i], HIGH);
   }
+  pinMode(JUMPER, INPUT);
 
   // Initialize serial communication
   Serial.begin(115200);
+  cleared = false;
 }
 
 /* Function: getLEDState
@@ -24,7 +27,7 @@ void setup()
 */
 inline byte getLEDState(byte pattern[4][4][4], byte aNum, byte cNum)
 {
-  byte z = abs(2 * (aNum/4) + (aNum/4 - cNum/4));
+  byte z = abs(2 * (aNum / 4) + (aNum / 4 - cNum / 4));
   return pattern[aNum % 4][cNum % 4][z];
 }
 
@@ -64,12 +67,51 @@ void decodeState(byte encodedState[8], byte pattern[4][4][4]) {
   }
 }
 
+/*
+  Below method is for question L1
+*/
+
+void loopThroughAll() {
+  for (byte aNum = 0; aNum < 8; aNum++) { // iterate through anode (+) wires
+    digitalWrite(ANODE_PINS[aNum], LOW);//set PMOS gate LOW, so anode is high
+    for (byte cNum = 0; cNum < 8; cNum++) { // iterate through cathode (-) wires
+      digitalWrite(CATHODE_PINS[cNum], LOW);
+      delayMicroseconds(100);
+      digitalWrite(CATHODE_PINS[cNum], HIGH);
+    }
+    digitalWrite(ANODE_PINS[aNum], HIGH);
+  }
+}
+
+void allOff(byte pattern[4][4][4]) {
+  for (int i = 0; i < sizeof(pattern); i++) {
+    for (int j = 0; j < sizeof(pattern[0]); j++) {
+      for (int k = 0; k < sizeof(pattern[0][0]); k++) {
+        pattern[i][j][k] = 0;
+        Serial.print(pattern[i][j][k]);
+        Serial.print(" ");
+      }
+      Serial.println();
+    }
+  }
+}
+
 void loop() {
   static byte ledPattern[4][4][4]; // 1 for on, 0 for off
-  if (Serial.available() > 0) {
-    byte encodedState[8];
-    Serial.readBytes(encodedState, 8);
-    decodeState(encodedState, ledPattern);
+  if (digitalRead(JUMPER) == HIGH) {
+    if (Serial.available() > 0) {
+      byte encodedState[8];
+      Serial.readBytes(encodedState, 8);
+      decodeState(encodedState, ledPattern);
+      //cleared = false;
+    }
+    
+  } else if (digitalRead(JUMPER) == LOW) {
+    /*if (!cleared) {
+      allOff(ledPattern);
+      cleared = true;
+    }*/
+    ledPattern[0][0][0] = 1;
   }
   display(ledPattern);
 }

@@ -7,7 +7,7 @@ The z value gets added later depending on the plane in which they
 should be displayed. See coords().
 """
 A_COORDS = [(0,0), (1,0), (2,0), (3,1), (3,2), (2,3), (1,3), (0,3), (1,1), (1,2)]
-B_COORDS = [(3,3), (2,3), (1,3), (0,3), (2,2), (0,2), (2,1), (0,1), (1,0), (0,0)]
+B_COORDS = [(3,3), (2,3), (1,3), (0,3), (2,2), (0,2), (2,1), (0,1), (1,0)]
 C_COORDS = [(2,3), (1,3), (3,2), (0,2), (3,1), (0,1), (3,0), (0,0)]
 D_COORDS = [(1,3), (2,2), (0,2), (2,1), (0,1), (3,0), (2,0), (1,0), (0,0)]
 E_COORDS = [(2,3), (1,3), (3,2), (2,2), (0,2), (3,1), (2,1), (0,1), (2,0), (0,0)]
@@ -75,3 +75,22 @@ def coords(symbol, z_planes=[0]):
             x,y = symbol_coords_2d[i]
             symbol_coords_3d.append((x,y,z))
     return symbol_coords_3d
+
+"""def coords(symbol, trans_x=0, trans_y=1, trans_z=2, orig_z=0):
+    #does no error checking on x,y,z 
+    symbol = symbol.lower() #we only have one case
+    index = SYMBOLS.find(symbol) #lookup pattern
+    
+    if index < 0:#invalid symbol
+        if symbol != " ":
+            print("Can't display symbol '{0}'".format(symbol))
+        return [(-1,-1,-1)]
+
+    symbol_coords_2d = SYMBOL_COORDS_LIST[index]
+    symbol_coords_3d = []
+    for i in range(len(symbol_coords_2d)):
+            x,y = symbol_coords_2d[i]
+            coord = (x,y,orig_z)
+            translated_coord = (coord[trans_x], coord[trans_y], coord[trans_z])
+            symbol_coords_3d.append(translated_coord)
+    return symbol_coords_3d"""

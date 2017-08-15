@@ -34,10 +34,10 @@ class CubeState:
            """
         if coords is not None:
             bset = 0
-            for pos in coords:
-                x = pos[0]
-                y = pos[1]
-                z = pos[2]
+            for coord in coords:
+                x = coord[0]
+                y = coord[1]
+                z = coord[2]
                 if not (x == -1 or y == -1 or z == -1):
                     bset |= (1 << (16*x + 4*z + y))
             return bset
@@ -89,7 +89,7 @@ class CubeState:
         return to_send
     #return -1
 
-    def printf(self, string, delay, z_planes=[0]):#
+    def printf(self, string, delay, z_planes=[3]):#
         """convenient helper function to print strings"""
         for char in string:
             #flash off for a small amount of time for breaks between letters
@@ -104,3 +104,39 @@ class CubeState:
         #clear cube after print
         self.update(-1,-1,-1)
         self.send()
+
+    """def printf(self, string, delay, z_planes=[0]):#
+        convenient helper function to print strings
+        char_in_z = np.array([" ", " ", " ", " "], dtype='U')
+        for i in range(len(string) + 4):
+            char_in_z = np.roll(char_in_z, 1)
+            if i < len(string):
+                char_in_z.itemset(0, string[i])
+            else:
+                char_in_z.itemset(0, " ")
+            print(char_in_z)
+
+            coords = []
+            for j in range(len(char_in_z)):
+                coords.extend(symbol.coords(char_in_z.item(j), z_planes=[j]))
+            self.update(coords=coords)
+            self.send()
+            sleep(delay)
+            """
+    def marquee(self, string, delay):
+        upcoming_chars = np.array([" ", " ", " "], dtype='U')
+        for i in range(len(string) + 3):
+            upcoming_chars = np.roll(upcoming_chars, 1)
+            if i < len(string):
+                upcoming_chars.itemset(0, string[i])
+            else:
+                upcoming_chars.itemset(0, " ")
+            print(upcoming_chars)
+
+            coords = symbol.coords(upcoming_chars[0], 2, 1, 0, 0)
+            coords.extend(symbol.coords(upcoming_chars[1], 0, 1, 2, 3))
+            coords.extend(symbol.coords(upcoming_chars[2], 2, 1, 0, 3))
+
+            self.update(coords=coords)
+            self.send()
+            sleep(delay)

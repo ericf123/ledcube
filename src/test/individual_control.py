@@ -1,7 +1,7 @@
 import cubestate
 import serial
 import numpy as np
-cs = cubestate.CubeState(1, '/dev/cu.SLAB_USBtoUART')
+cs = cubestate.CubeState('/dev/cu.SLAB_USBtoUART', exp_time=1)
 
 while True:
     x = int(input("x: "))

@@ -2,8 +2,8 @@ import cubestate
 import serial
 import numpy as np
 from time import sleep
-DELAY = .025
-cs = cubestate.CubeState(16*DELAY, '/dev/cu.SLAB_USBtoUART')
+DELAY = .5
+cs = cubestate.CubeState('/dev/cu.SLAB_USBtoUART', exp_time=DELAY)
 
 while True:
     for z in range(0, 4):

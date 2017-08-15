@@ -1,26 +1,57 @@
-import numpy as np
-import cv2
-from cubestate import CubeState
-import vision
+import cubestate
+import raindrop
+import corner
 
-cap = cv2.VideoCapture(0)
-while(True):
-    #read and flip frame
-    ret,frame = cap.read()
-    frame = cv2.flip(frame, 1)#horizontal flip
+PRINTER = 1
+CORNER_PATTERN = 2
+RAINDROP_PATTERN = 3
 
-    green_mask, red_mask = vision.apply_thresholds(frame)
-    green_box, red_box = vision.get_boxes(frame, green_mask, red_mask)
+cs = cubestate.CubeState('/dev/cu.SLAB_USBtoUART', exp_time=-1)
 
-    vision.draw_boxes(frame, green_box, red_box)
+def loop():
+    while True:
+        choice = menu()
 
-    cv2.imshow('frame', frame)
-    cv2.imshow('red_mask', red_mask)
-    cv2.imshow('green_mask', green_mask)
-    print(vision.get_x())
+        if choice == PRINTER:
+            while True:
+                try:
+                    cs.printf(input("enter string (^C to quit): "), .4)
+                except KeyboardInterrupt:
+                    break
+        elif choice == CORNER_PATTERN:
+            try:
+                corner.run(cs)
+            except KeyboardInterrupt:
+                pass
+        elif choice == RAINDROP_PATTERN:
+            try:
+                raindrop.run(cs, .2)
+            except KeyboardInterrupt:
+                pass
+        else:
+            break
+    cs.update(-1,-1,-1)
+    cs.send()
+    print("bye")
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-cap.release()
-cv2.destroyAllWindows()
+def menu():
+    user_input = -1
+    while user_input not in [1,2,3,4]:
+        show_menu_options()
+        try:
+            user_input = int(input("Make your selection (1/2/3/4):"))
+        except:
+            print("Please enter either 1, 2, 3 or 4.")
+            user_input = -1
+    return user_input
 
+def show_menu_options():
+    print("----Cube Menu-----")
+    print("1) Message Printer")
+    print("2) Corner Pattern")
+    print("3) Raindrop Pattern")
+    print("4) Quit")
+
+
+
+loop()
