@@ -25,6 +25,12 @@ void setup()
  */
 inline byte getLEDState(byte pattern[4][4][4], byte aNum, byte cNum)
 {
+    /*
+        This is a formula I derived by basically thinking for awhile. 
+        The reason it needs absolute value is because for the z=1 plane,
+        the result returned is actually -1, so we use absolute value to correct
+        this.
+    */
     byte z = abs(2 * (aNum / 4) + (aNum / 4 - cNum / 4));
     return pattern[aNum % 4][cNum % 4][z];
 }
@@ -54,19 +60,30 @@ void display(byte pattern[4][4][4])
     }
 }
 
+/*
+    Function: decodeState
+    ---------------------
+    Here we decode the state sent over serial as 8 bytes and update the pattern
+    accordingly.
+
+*/
 void decodeState(byte encodedState[8], byte pattern[4][4][4]) {
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
+    //for a detailed explanation of the encoding used, see the cubestate.py file in src/controller.
+    for (int i = 0; i < 8; i++) {//loop through bytes
+        for (int j = 0; j < 8; j++) {//loop through bits
+            //first we determine which position we are setting
             byte x = i / 2;
             byte y = j % 4;
             byte z = 2 * (i % 2) + (j / 4);
+            //then we figure out the state of this position
             pattern[x][y][z] = encodedState[i] & (1 << j);
         }
     }
 }
 
 /*
-   Below method is for question L1
+   Below method is for question L1. It is
+   inentionally unused.
  */
 
 void loopThroughAll() {
@@ -81,28 +98,13 @@ void loopThroughAll() {
     }
 }
 
-void allOff(byte pattern[4][4][4]) {
-    for (int i = 0; i < sizeof(pattern); i++) {
-        for (int j = 0; j < sizeof(pattern[0]); j++) {
-            for (int k = 0; k < sizeof(pattern[0][0]); k++) {
-                pattern[i][j][k] = 0;
-                Serial.print(pattern[i][j][k]);
-                Serial.print(" ");
-            }
-            Serial.println();
-        }
-    }
-}
-
 void loop() {
     static byte ledPattern[4][4][4]; // 1 for on, 0 for off
-    if (Serial.available() > 0) {
+    if (Serial.available() > 0) {//if the controller is sending data, read it
         byte encodedState[8];
         Serial.readBytes(encodedState, 8);
-        decodeState(encodedState, ledPattern);
-        //cleared = false;
+        decodeState(encodedState, ledPattern);//write data to a format we can work with
     }
 
-    display(ledPattern);
+    display(ledPattern);//run one TDM cycle
 }
-
