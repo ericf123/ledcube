@@ -9,7 +9,7 @@ import symbol
 class CubeState:
     def __init__(self,  serial_port, serial_baud=115200, exp_time=-1):
         """standard initializer
-           exp_time is the time (in seconds) and LED should stay on after being turned on"""
+           exp_time is the time (in seconds) an LED should stay on after being turned on"""
         self.current = 0 #current map of leds that are on - initialize to none on (treated as 64bit in)
         self.exp_queue = eq() 
         self.exp_time = exp_time
